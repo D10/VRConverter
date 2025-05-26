@@ -3,13 +3,18 @@
 
 ### 1. Переходим в корень проекта
 
-### 2. Создаем и активируем виртуальное окружение для python
+### 2. Компилируем C++ скрипт командой
+```bash
+g++ converter.cpp -o stereo -O3 -march=native -ffast-math -pthread
+```
+
+### 3. Создаем и активируем виртуальное окружение для python
 ```bash
 python -m venv venv
 . ./venv/bin activate
 ```
 
-### 3. Установка python библиотек
+### 4. Установка python библиотек
 ```bash
 pip3 install -r requirements.txt
 ```
