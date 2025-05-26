@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="../manifest.json">
+  <title>VR Image Viewer</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      height: 100%;
+      overflow: hidden;
+    }
+    #vr-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+  </style>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+</head>
+<body>
+  <img id="vr-image" src="/get-image?ts=0" alt="VR Frame" />
+  <script>
+    const img = document.getElementById('vr-image');
+
+    function updateImage() {
+      const timestamp = Date.now(); // предотвращает кеширование
+      img.src = `/get-image?ts=${timestamp}`;
+    }
+
+    setInterval(updateImage, 5000); // обновление каждые 5 секунд
+  </script>
+</body>
+</html>

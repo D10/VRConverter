@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Конвертация изображений</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
+    h1 { font-size: 24px; }
+    form { margin-top: 20px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+    img { max-width: 100px; margin: 5px; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Конвертация изображений (VR)</h1>
+  <form method="POST">
+    <label>Выберите изображение для конвертации:</label><br>
+    <select name="image" required>
+      {% for image in images %}
+        <option value="{{ image }}">{{ image }}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <button type="submit">Конвертировать</button>
+  </form>
+</body>
+</html>
