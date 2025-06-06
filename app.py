@@ -23,6 +23,9 @@ def get_image():
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
+    message = None
+    images = [f for f in os.listdir(IMAGES_FOLDER) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+
     if request.method == 'POST':
         filename = request.form.get('image')
         if filename:
@@ -30,13 +33,13 @@ def admin():
             if os.path.exists(input_path):
                 try:
                     subprocess.run([STEREO_EXECUTABLE, input_path], check=True)
-                    return f'Изображение {filename} сконвертировано!', 200
+                    message = f'Изображение {filename} сконвертировано!'
                 except subprocess.CalledProcessError:
-                    return f'Ошибка при запуске конвертации', 500
-        return 'Файл не найден', 404
+                    message = f'Ошибка при запуске конвертации'
+        else:
+            message = 'Файл не найден'
 
-    images = [f for f in os.listdir(IMAGES_FOLDER) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-    return render_template('admin.html', images=images)
+    return render_template('admin.html', images=images, message=message)
 
 
 if __name__ == '__main__':

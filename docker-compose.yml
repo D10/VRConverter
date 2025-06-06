@@ -14,5 +14,6 @@ services:
       - ./images:/app/images
       - ./static:/app/static
       - ./templates:/app/templates
+      - ./app.py:/app/app.py
     working_dir: /app
     command: python app.py
