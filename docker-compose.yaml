@@ -15,5 +15,10 @@ services:
       - ./static:/app/static
       - ./templates:/app/templates
       - ./app.py:/app/app.py
+      - /run/udev:/run/udev:ro
     working_dir: /app
     command: python app.py
+    devices:
+      - "/dev/video0:/dev/video0"
+    group_add:
+      - "video"
