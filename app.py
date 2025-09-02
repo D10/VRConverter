@@ -12,7 +12,7 @@ from PIL import Image
 
 from flask import (
     Flask, send_from_directory, send_file, render_template, request,
-    redirect, url_for, flash, Response, jsonify, abort
+    redirect, url_for, flash, Response, jsonify, abort, make_response
 )
 
 from camera import camera
@@ -75,6 +75,25 @@ def get_latest_converted_image():
     return files[0] if files else None
 
 
+def update_latest_converted(src: Path):
+    """
+    Обновляет "указатель" на последнее сконвертированное изображение.
+    Делаем атомарную подмену latest.jpg (через временный файл и replace).
+    """
+    try:
+        dst_dir = CONVERTED_IMAGES_FOLDER
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        tmp = dst_dir / ("latest_tmp_" + str(int(time.time())) + ".jpg")
+        dst = dst_dir / "latest.jpg"
+        # копия источника в tmp, затем атомарная замена
+        with open(src, "rb") as fsrc, open(tmp, "wb") as fdst:
+            fdst.write(fsrc.read())
+        tmp.replace(dst)
+    except Exception as e:
+        print(f"[latest] failed to update latest.jpg: {e}")
+
+
+
 def auto_snap_worker():
     global last_auto_filename, last_auto_time, last_auto_error
     while not auto_snap_stop.is_set():
@@ -122,6 +141,10 @@ def auto_snap_worker():
                 ok_conv, msg_conv = run_conversion(save_path)
                 if not ok_conv:
                     last_auto_error = f"Конвертация: {msg_conv}"
+                # run_conversion уже обновит latest.jpg
+            else:
+                # если конвертацию не делаем — можно показывать сырой автоснимок
+                update_latest_converted(save_path)
 
             time.sleep(interval)
         else:
@@ -197,6 +220,25 @@ def run_conversion(input_path: Path) -> tuple[bool, str]:
 
         cmd = [STEREO_EXECUTABLE, str(resized_path), parallax, layers, zlayer, mode_code]
         subprocess.run(cmd, check=True)
+
+        # Выбираем, что считать "последним": предпочитаем pair.jpg, иначе left/right
+        out_mode = (cfg.get("output_mode") or "both").lower()
+        pair = CONVERTED_IMAGES_FOLDER / "pair.jpg"
+        left = CONVERTED_IMAGES_FOLDER / "left.jpg"
+        right = CONVERTED_IMAGES_FOLDER / "right.jpg"
+
+        chosen = None
+        if pair.exists() and out_mode in ("both", "pair"):
+            chosen = pair
+        elif out_mode in ("both", "split"):
+            # берём самый свежий из left/right
+            candidates = [p for p in (left, right) if p.exists()]
+            if candidates:
+                chosen = max(candidates, key=lambda p: p.stat().st_mtime)
+
+        if chosen and chosen.exists():
+            update_latest_converted(chosen)
+
         return True, f"Конвертация ок (parallax={parallax}, layers={layers}, zpl={zlayer}, mode={out_mode})."
     except FileNotFoundError:
         return False, "Не найден исполняемый файл конвертера (STEREO_EXECUTABLE)."
@@ -254,11 +296,26 @@ def run_conversion(input_path: Path) -> tuple[bool, str]:
 
 @app.route('/')
 def serve_latest_image():
-    latest = get_latest_converted_image()
-    if latest and latest.exists():
-        return send_file(latest, mimetype="image/jpeg")
-    else:
-        abort(404, description="Нет сконвертированных изображений")
+    # приоритет: latest.jpg
+    latest = CONVERTED_IMAGES_FOLDER / "latest.jpg"
+    if latest.exists():
+        resp = make_response(send_file(latest, mimetype='image/jpeg'))
+        # запрет кэширования, чтобы браузер не залипал на старом кадре
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp.headers['Pragma'] = 'no-cache'
+        resp.headers['Expires'] = '0'
+        return resp
+
+    # как резерв — старый pair.jpg, если latest ещё не создавался
+    pair = CONVERTED_IMAGES_FOLDER / "pair.jpg"
+    if pair.exists():
+        resp = make_response(send_file(pair, mimetype='image/jpeg'))
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp.headers['Pragma'] = 'no-cache'
+        resp.headers['Expires'] = '0'
+        return resp
+
+    abort(404, description="Нет сконвертированных изображений")
 
 
 @app.route('/get-image')
