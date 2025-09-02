@@ -488,7 +488,7 @@ def auto_snap_status():
     cfg = read_config()
     return jsonify({
         "enabled": cfg.get("auto_snap_enabled") == "true",
-        "interval": int(float(cfg.get("auto_snap_interval") or 5)),
+        "interval": int(cfg.get("auto_snap_interval") or 5),
         "convert": cfg.get("auto_snap_convert") == "true",
         "max_files": int(float(cfg.get("auto_snap_max_files") or 50)),
         "running": auto_snap_thread.is_alive() if 'auto_snap_thread' in globals() and auto_snap_thread else False,
