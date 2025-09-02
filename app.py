@@ -295,27 +295,8 @@ def run_conversion(input_path: Path) -> tuple[bool, str]:
 
 
 @app.route('/')
-def serve_latest_image():
-    # приоритет: latest.jpg
-    latest = CONVERTED_IMAGES_FOLDER / "latest.jpg"
-    if latest.exists():
-        resp = make_response(send_file(latest, mimetype='image/jpeg'))
-        # запрет кэширования, чтобы браузер не залипал на старом кадре
-        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-        resp.headers['Pragma'] = 'no-cache'
-        resp.headers['Expires'] = '0'
-        return resp
-
-    # как резерв — старый pair.jpg, если latest ещё не создавался
-    pair = CONVERTED_IMAGES_FOLDER / "pair.jpg"
-    if pair.exists():
-        resp = make_response(send_file(pair, mimetype='image/jpeg'))
-        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-        resp.headers['Pragma'] = 'no-cache'
-        resp.headers['Expires'] = '0'
-        return resp
-
-    abort(404, description="Нет сконвертированных изображений")
+def serve_index():
+    return send_from_directory(str(STATIC_FOLDER), 'index.html')
 
 
 @app.route('/get-image')
