@@ -6,12 +6,17 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+
+import cv2
 from PIL import Image
 
 from flask import (
     Flask, send_from_directory, send_file, render_template, request,
     redirect, url_for, flash, Response, jsonify
 )
+
+from camera import camera
+
 
 CONFIG_FOLDER = Path("config")
 CONFIG_PATH = CONFIG_FOLDER / "config.csv"
@@ -301,78 +306,6 @@ def convert():
 
     ok, msg = run_conversion(input_path)
     return jsonify({'ok': ok, 'message': msg})
-
-
-try:
-    import cv2
-except Exception:
-    cv2 = None
-
-
-class Camera:
-    def __init__(self, device_index=0, width=1280, height=720, fps=30):
-        self.device_index = device_index
-        self.width = width
-        self.height = height
-        self.fps = fps
-
-        self.cap = None
-        self.lock = threading.Lock()
-        self.last_frame = None
-        self.running = False
-        self.thread = None
-
-    def start(self):
-        if cv2 is None:
-            return False, "OpenCV (cv2) не установлен."
-        with self.lock:
-            if self.running:
-                return True, "OK"
-            self.cap = cv2.VideoCapture(self.device_index)
-            if not self.cap.isOpened():
-                return False, "Не удаётся открыть USB-камеру."
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
-            self.cap.set(cv2.CAP_PROP_FPS, self.fps)
-            self.running = True
-            self.thread = threading.Thread(target=self._reader, daemon=True)
-            self.thread.start()
-            return True, "OK"
-
-    def _reader(self):
-        while self.running and self.cap:
-            ret, frame = self.cap.read()
-            if not ret:
-                time.sleep(0.05)
-                continue
-            with self.lock:
-                self.last_frame = frame
-            time.sleep(0.001)
-
-    def get_jpeg(self) -> bytes | None:
-        with self.lock:
-            frame = None if self.last_frame is None else self.last_frame.copy()
-        if frame is None or cv2 is None:
-            return None
-        ok, buf = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
-        if not ok:
-            return None
-        return buf.tobytes()
-
-    def get_frame(self):
-        with self.lock:
-            return None if self.last_frame is None else self.last_frame.copy()
-
-    def stop(self):
-        with self.lock:
-            self.running = False
-            cap = self.cap
-            self.cap = None
-        if cap:
-            cap.release()
-
-
-camera = Camera(device_index=0)
 
 
 @app.route('/camera-feed')
