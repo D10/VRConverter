@@ -12,7 +12,7 @@ from PIL import Image
 
 from flask import (
     Flask, send_from_directory, send_file, render_template, request,
-    redirect, url_for, flash, Response, jsonify
+    redirect, url_for, flash, Response, jsonify, abort
 )
 
 from camera import camera
@@ -63,6 +63,16 @@ auto_snap_stop = threading.Event()
 last_auto_filename = None
 last_auto_time = None
 last_auto_error = None
+
+
+def get_latest_converted_image():
+    """Ищем последний сконвертированный JPG/PNG."""
+    files = sorted(
+        CONVERTED_IMAGES_FOLDER.glob("*.jpg"),
+        key=lambda f: f.stat().st_mtime,
+        reverse=True
+    )
+    return files[0] if files else None
 
 
 def auto_snap_worker():
@@ -243,8 +253,12 @@ def run_conversion(input_path: Path) -> tuple[bool, str]:
 
 
 @app.route('/')
-def serve_index():
-    return send_from_directory(str(STATIC_FOLDER), 'index.html')
+def serve_latest_image():
+    latest = get_latest_converted_image()
+    if latest and latest.exists():
+        return send_file(latest, mimetype="image/jpeg")
+    else:
+        abort(404, description="Нет сконвертированных изображений")
 
 
 @app.route('/get-image')
