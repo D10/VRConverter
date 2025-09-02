@@ -50,3 +50,14 @@ http://<адрес хоста>:8000/admin
 ```bash
 http://<адрес хоста>:8000
 ```
+
+# Параметризация C++ скрипта
+
+```
+./stereo <input_path> [parallax_perc] [layers_count] [zero_parallax_layer_num] [output_mode]
+  input_path               путь к входному изображению (jpg/png и т.п.)
+  parallax_perc            процент смещения по ширине (double, по умолчанию 0.5)
+  layers_count             число слоёв (int, по умолчанию 10)
+  zero_parallax_layer_num  слой нулевого параллакса (int, по умолчанию 5)
+  output_mode              0=both (по умолчанию), 1=pair только, 2=split только
+```

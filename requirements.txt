@@ -2,3 +2,4 @@ Flask
 opencv-python-headless==4.10.0.84
 picamera2
 numpy
+Pillow>=10.3

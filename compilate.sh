@@ -1,0 +1,1 @@
+g++ converter.cpp -o stereo -O3 -march=native -ffast-math -pthread

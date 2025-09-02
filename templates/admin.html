@@ -1,367 +1,645 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Конвертация изображений (VR)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      color-scheme: light dark;
-      --bg: #0f1220;
-      --bg-grad-1: #0f1220;
-      --bg-grad-2: #1a1f3b;
-      --card: #14182b;
-      --card-hover: #171c33;
-      --text: #e9ecf2;
-      --subtle: #a9b0c7;
-      --border: rgba(255,255,255,.08);
-      --accent: #7c9eff;
-      --accent-2: #9b7cff;
-      --accent-weak: rgba(124,158,255,.15);
-      --success-bg: #0f2a19;
-      --success-brd: #1f8a4c;
-      --error-bg: #2a1516;
-      --error-brd: #d1545b;
-      --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
-      --radius: 16px;
-      --radius-sm: 12px;
-      --focus: 0 0 0 3px rgba(124,158,255,.35);
-    }
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #f6f7fb;
-        --bg-grad-1: #f6f7fb;
-        --bg-grad-2: #eef1fb;
-        --card: #ffffff;
-        --card-hover: #fbfbff;
-        --text: #101222;
-        --subtle: #626b86;
-        --border: rgba(16,18,34,.08);
-        --accent: #3b6cff;
-        --accent-2: #7a3bff;
-        --accent-weak: rgba(59,108,255,.10);
-        --success-bg: #e9f7ef;
-        --success-brd: #2b9a66;
-        --error-bg: #fdebea;
-        --error-brd: #d1545b;
-        --shadow: 0 12px 30px rgba(16,18,34,.08), inset 0 1px 0 rgba(255,255,255,.8);
-      }
-    }
+    <meta charset="UTF-8"/>
+    <title>Конвертация изображений (VR)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f1220;
+            --bg-grad-1: #0f1220;
+            --bg-grad-2: #1a1f3b;
+            --card: #14182b;
+            --card-hover: #171c33;
+            --text: #e9ecf2;
+            --subtle: #a9b0c7;
+            --border: rgba(255, 255, 255, .08);
+            --accent: #7c9eff;
+            --accent-2: #9b7cff;
+            --accent-weak: rgba(124, 158, 255, .15);
+            --success-bg: #0f2a19;
+            --success-brd: #1f8a4c;
+            --error-bg: #2a1516;
+            --error-brd: #d1545b;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .02);
+            --radius: 16px;
+            --radius-sm: 12px;
+            --focus: 0 0 0 3px rgba(124, 158, 255, .35);
+        }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      color: var(--text);
-      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-      background:
-        radial-gradient(1200px 600px at 10% -10%, var(--bg-grad-2), transparent 60%),
-        radial-gradient(1200px 600px at 110% 10%, var(--accent-weak), transparent 50%),
-        linear-gradient(180deg, var(--bg-grad-1), var(--bg));
-    }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f6f7fb;
+                --bg-grad-1: #f6f7fb;
+                --bg-grad-2: #eef1fb;
+                --card: #ffffff;
+                --card-hover: #fbfbff;
+                --text: #101222;
+                --subtle: #626b86;
+                --border: rgba(16, 18, 34, .08);
+                --accent: #3b6cff;
+                --accent-2: #7a3bff;
+                --accent-weak: rgba(59, 108, 255, .10);
+                --success-bg: #e9f7ef;
+                --success-brd: #2b9a66;
+                --error-bg: #fdebea;
+                --error-brd: #d1545b;
+                --shadow: 0 12px 30px rgba(16, 18, 34, .08), inset 0 1px 0 rgba(255, 255, 255, .8);
+            }
+        }
 
-    /* Header */
-    .topbar {
-      position: sticky; top: 0; z-index: 10;
-      backdrop-filter: blur(8px);
-      background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.0));
-      border-bottom: 1px solid var(--border);
-    }
-    .topbar .wrap {
-      display: flex; align-items: center; gap: 14px;
-      max-width: 1200px; margin: 0 auto; padding: 18px 24px;
-    }
-    .brand {
-      display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text);
-    }
-    .brand .logo {
-      width: 36px; height: 36px; border-radius: 10px;
-      display: grid; place-items: center;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #fff; font-weight: 800; letter-spacing: .5px;
-      box-shadow: var(--shadow);
-    }
-    .brand .title { font-weight: 700; font-size: 18px; letter-spacing: .2px; }
-    .brand .subtitle { font-size: 12px; color: var(--subtle); }
+        * {
+            box-sizing: border-box;
+        }
 
-    /* Layout */
-    .container {
-      max-width: 1200px; margin: 24px auto; padding: 0 24px;
-    }
-    h1 { margin: 0 0 18px; font-size: 24px; letter-spacing: .2px; }
+        html, body {
+            height: 100%;
+        }
 
-    .grid {
-      display: grid; gap: 18px;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    }
+        body {
+            margin: 0;
+            color: var(--text);
+            font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background: radial-gradient(1200px 600px at 10% -10%, var(--bg-grad-2), transparent 60%),
+            radial-gradient(1200px 600px at 110% 10%, var(--accent-weak), transparent 50%),
+            linear-gradient(180deg, var(--bg-grad-1), var(--bg));
+        }
 
-    /* Cards */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      transition: transform .2s ease, background .2s ease, border-color .2s ease;
-    }
-    .card:hover { transform: translateY(-2px); background: var(--card-hover); }
-    .card header {
-      display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px;
-    }
-    .card header .h {
-      font-weight: 700; letter-spacing: .2px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .badge {
-      font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border);
-      background: rgba(255,255,255,.04); color: var(--subtle);
-    }
+        /* Header */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            background: linear-gradient(180deg, rgba(0, 0, 0, .26), rgba(0, 0, 0, .0));
+            border-bottom: 1px solid var(--border);
+        }
 
-    /* Controls */
-    label { font-weight: 600; color: var(--text); display: block; margin-bottom: 6px; }
+        .topbar .wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 18px 24px;
+        }
 
-    select, input[type="file"], button {
-      margin-top: 8px;
-    }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text);
+        }
 
-    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .brand .logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #fff;
+            font-weight: 800;
+            letter-spacing: .5px;
+            box-shadow: var(--shadow);
+        }
 
-    .field, select, input[type="file"] {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.02));
-      color: var(--text);
-      outline: none; transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease;
-    }
-    select:focus, input[type="file"]:focus, .field:focus { box-shadow: var(--focus); border-color: var(--accent); }
+        .brand .title {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: .2px;
+        }
 
-    /* Custom select arrow */
-    select {
-      appearance: none; -webkit-appearance: none; -moz-appearance: none;
-      background-image:
-        linear-gradient(180deg, rgba(0,0,0,.10), rgba(255,255,255,.06)),
-        url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%23a9b0c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat, no-repeat;
-      background-position: 0 0, right 12px center;
-      background-size: auto, 18px;
-      padding-right: 40px;
-    }
+        .brand .subtitle {
+            font-size: 12px;
+            color: var(--subtle);
+        }
 
-    /* Buttons */
-    button {
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #fff; font-weight: 700; letter-spacing: .2px;
-      cursor: pointer;
-      transition: transform .06s ease, box-shadow .2s ease, filter .2s ease, opacity .2s ease;
-      box-shadow: 0 8px 20px rgba(124,158,255,.25);
-    }
-    button:hover { filter: brightness(1.05); }
-    button:active { transform: translateY(1px) scale(.99); }
-    button:disabled { opacity: .6; cursor: not-allowed; }
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 24px;
+        }
 
-    .btn-secondary {
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.08));
-      color: var(--text);
-      box-shadow: none;
-    }
-    .btn-ghost {
-      background: transparent; color: var(--subtle); border-color: var(--border);
-    }
-    .btn-ghost:hover { color: var(--text); background: rgba(255,255,255,.04); }
+        h1 {
+            margin: 0 0 18px;
+            font-size: 24px;
+            letter-spacing: .2px;
+        }
 
-    /* Messages */
-    .msg {
-      padding: 12px 14px; border-radius: 12px; margin-top: 12px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.03);
-    }
-    .msg.success { background: var(--success-bg); border-color: var(--success-brd); color: #dcffec; }
-    .msg.error { background: var(--error-bg); border-color: var(--error-brd); color: #ffd6d6; }
+        .grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        }
 
-    /* Preview */
-    .preview {
-      width: 100%; aspect-ratio: 16/9; border-radius: var(--radius);
-      overflow: hidden; display: flex; align-items: center; justify-content: center;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.12)),
-        radial-gradient(600px 300px at 50% 0%, rgba(124,158,255,.18), transparent 60%);
-      border: 1px solid var(--border);
-    }
-    .preview img { width: 100%; height: 100%; object-fit: cover; }
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: var(--shadow);
+            transition: transform .2s ease, background .2s ease, border-color .2s ease;
+        }
 
-    /* Images list */
-    .images {
-      max-height: 240px; overflow: auto;
-      border: 1px solid var(--border);
-      border-radius: 12px; padding: 8px;
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.08));
-    }
-    .images div {
-      padding: 8px 10px; border-radius: 10px;
-      transition: background .12s ease;
-    }
-    .images div:hover { background: rgba(255,255,255,.06); }
+        .card:hover {
+            transform: translateY(-2px);
+            background: var(--card-hover);
+        }
 
-    /* Scrollbar */
-    .images::-webkit-scrollbar { width: 10px; }
-    .images::-webkit-scrollbar-track { background: transparent; }
-    .images::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 999px; }
-    @media (prefers-color-scheme: light) {
-      .images::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); }
-    }
+        .card header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
 
-    /* Footer */
-    .footer {
-      max-width: 1200px; margin: 28px auto 40px; padding: 0 24px;
-      color: var(--subtle); font-size: 13px;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    }
-    .kbd {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      background: rgba(255,255,255,.06); border: 1px solid var(--border);
-      padding: 2px 6px; border-radius: 6px; font-size: 12px; color: var(--subtle);
-    }
-    code { background: rgba(124,158,255,.12); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); }
+        .card header .h {
+            font-weight: 700;
+            letter-spacing: .2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    /* Small utilities */
-    .muted { color: var(--subtle); font-size: 13px; }
-    .spacer { height: 10px; }
-  </style>
+        .badge {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .04);
+            color: var(--subtle);
+        }
+
+        /* Controls */
+        label {
+            font-weight: 600;
+            color: var(--text);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        select, input[type="file"], button {
+            margin-top: 8px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .field, select, input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .02));
+            color: var(--text);
+            outline: none;
+            transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease;
+        }
+
+        select:focus, input[type="file"]:focus, .field:focus {
+            box-shadow: var(--focus);
+            border-color: var(--accent);
+        }
+
+        /* Custom select arrow */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: linear-gradient(180deg, rgba(0, 0, 0, .10), rgba(255, 255, 255, .06)),
+            url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%23a9b0c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat, no-repeat;
+            background-position: 0 0, right 12px center;
+            background-size: auto, 18px;
+            padding-right: 40px;
+        }
+
+        /* Buttons */
+        button {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: .2px;
+            cursor: pointer;
+            transition: transform .06s ease, box-shadow .2s ease, filter .2s ease, opacity .2s ease;
+            box-shadow: 0 8px 20px rgba(124, 158, 255, .25);
+        }
+
+        button:hover {
+            filter: brightness(1.05);
+        }
+
+        button:active {
+            transform: translateY(1px) scale(.99);
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .08));
+            color: var(--text);
+            box-shadow: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--subtle);
+            border-color: var(--border);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, .04);
+        }
+
+        /* Messages */
+        .msg {
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .msg.success {
+            background: var(--success-bg);
+            border-color: var(--success-brd);
+            color: #dcffec;
+        }
+
+        .msg.error {
+            background: var(--error-bg);
+            border-color: var(--error-brd);
+            color: #ffd6d6;
+        }
+
+        /* Preview */
+        .preview {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(0, 0, 0, .12)),
+            radial-gradient(600px 300px at 50% 0%, rgba(124, 158, 255, .18), transparent 60%);
+            border: 1px solid var(--border);
+        }
+
+        .preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Images list */
+        .images {
+            max-height: 240px;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(0, 0, 0, .08));
+        }
+
+        .images div {
+            padding: 8px 10px;
+            border-radius: 10px;
+            transition: background .12s ease;
+        }
+
+        .images div:hover {
+            background: rgba(255, 255, 255, .06);
+        }
+
+        /* Scrollbar */
+        .images::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .images::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .images::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .15);
+            border-radius: 999px;
+        }
+
+        @media (prefers-color-scheme: light) {
+            .images::-webkit-scrollbar-thumb {
+                background: rgba(0, 0, 0, .12);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            max-width: 1200px;
+            margin: 28px auto 40px;
+            padding: 0 24px;
+            color: var(--subtle);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .kbd {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--subtle);
+        }
+
+        code {
+            background: rgba(124, 158, 255, .12);
+            padding: 2px 6px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        /* Small utilities */
+        .muted {
+            color: var(--subtle);
+            font-size: 13px;
+        }
+
+        .spacer {
+            height: 10px;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- Top bar -->
-  <div class="topbar">
+<!-- Top bar -->
+<div class="topbar">
     <div class="wrap">
-      <a class="brand" href="#">
-        <div class="logo">VR</div>
-        <div>
-          <div class="title">Админ-панель</div>
-          <div class="subtitle">Конвертация изображений</div>
-        </div>
-      </a>
-      <div style="margin-left:auto" class="muted">Raspberry Pi · локальный хост</div>
+        <a class="brand" href="#">
+            <div class="logo">VR</div>
+            <div>
+                <div class="title">Админ-панель</div>
+                <div class="subtitle">Конвертация изображений</div>
+            </div>
+        </a>
+        <div style="margin-left:auto" class="muted">Raspberry Pi · локальный хост</div>
     </div>
-  </div>
+</div>
 
-  <div class="container">
+<div class="container">
     <h1>Конвертация изображений (VR)</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="msg {{ category }}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="msg {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
     {% endwith %}
 
     <div class="grid">
 
-      <!-- Блок выбора готового изображения -->
-      <div class="card">
-        <header>
-          <div class="h">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Выбор файла из <code>images/</code>
-          </div>
-          <span class="badge">Локальные файлы</span>
-        </header>
+        <!-- Блок выбора готового изображения -->
+        <div class="card">
+            <header>
+                <div class="h">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2"
+                              stroke-linecap="round"/>
+                    </svg>
+                    Выбор файла из <code>images/</code>
+                </div>
+                <span class="badge">Локальные файлы</span>
+            </header>
 
-        <label>Выберите изображение для конвертации:</label>
-        <div class="row" style="margin-top:8px;">
-          <select id="imageSelect" class="field" style="flex:1; min-width:200px;">
-            {% for image in images %}
-              <option value="{{ image }}">{{ image }}</option>
-            {% endfor %}
-          </select>
-          <form id="convertExisting" method="POST">
-            <input type="hidden" name="image" id="imageHidden">
-            <button type="submit" title="Сконвертировать выбранный файл">Конвертировать</button>
-          </form>
+            <label>Выберите изображение для конвертации:</label>
+            <div class="row" style="margin-top:8px;">
+                <select id="imageSelect" class="field" style="flex:1; min-width:200px;">
+                    {% for image in images %}
+                        <option value="{{ image }}">{{ image }}</option>
+                    {% endfor %}
+                </select>
+                <form id="convertExisting" method="POST">
+                    <input type="hidden" name="image" id="imageHidden">
+                    <button type="submit" title="Сконвертировать выбранный файл">Конвертировать</button>
+                </form>
+            </div>
+            <div class="spacer"></div>
+            <div class="muted">Файлы берутся из каталога <code>images/</code> на Raspberry&nbsp;Pi.</div>
         </div>
-        <div class="spacer"></div>
-        <div class="muted">Файлы берутся из каталога <code>images/</code> на Raspberry&nbsp;Pi.</div>
-      </div>
 
-      <!-- Блок загрузки локального файла -->
-      <div class="card">
-        <header>
-          <div class="h">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12l8-8 8 8M12 4v14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Загрузка с устройства
-          </div>
-          <span class="badge">JPG/PNG</span>
-        </header>
+        <!-- Блок загрузки локального файла -->
+        <div class="card">
+            <header>
+                <div class="h">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 12l8-8 8 8M12 4v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                    Загрузка с устройства
+                </div>
+                <span class="badge">JPG/PNG</span>
+            </header>
 
-        <label>Выберите файл с компьютера/телефона:</label>
-        <input id="fileInput" type="file" accept=".jpg,.jpeg,.png" class="field" />
-        <div class="row" style="margin-top:10px;">
-          <button id="uploadBtn">Загрузить</button>
-          <button id="uploadAndConvertBtn" class="btn-secondary" title="Сначала загрузить, затем сразу конвертировать">Загрузить и конвертировать</button>
+            <label>Выберите файл с компьютера/телефона:</label>
+            <input id="fileInput" type="file" accept=".jpg,.jpeg,.png" class="field"/>
+            <div class="row" style="margin-top:10px;">
+                <button id="uploadBtn">Загрузить</button>
+                <button id="uploadAndConvertBtn" class="btn-secondary"
+                        title="Сначала загрузить, затем сразу конвертировать">Загрузить и конвертировать
+                </button>
+            </div>
+            <div id="uploadMsg" class="msg" style="display:none;"></div>
         </div>
-        <div id="uploadMsg" class="msg" style="display:none;"></div>
-      </div>
 
-      <!-- Блок камеры: превью + захват кадра -->
-      <div class="card">
-        <header>
-          <div class="h">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 8h3l2-2h6l2 2h3v10H4V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/></svg>
-            Камера — превью и захват
-          </div>
-          <span class="badge">MJPEG поток</span>
-        </header>
+        <!-- Блок камеры: превью + захват кадра -->
+        <div class="card">
+            <header>
+                <div class="h">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 8h3l2-2h6l2 2h3v10H4V8z" stroke="currentColor" stroke-width="2"
+                              stroke-linejoin="round"/>
+                        <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Камера — превью и захват
+                </div>
+                <span class="badge">MJPEG поток</span>
+            </header>
 
-        <div class="preview" style="margin-top:8px;">
-          <<img id="cameraStream" src="/camera-feed" alt="camera preview"
-            onerror="this.onerror=null; this.src=''; this.alt='Нет доступа к камере или Picamera2/OpenCV не установлены.'; this.style.background='transparent'; this.style.opacity='0.7';">
-        </div>
-        <div class="row" style="margin-top:12px;">
-          <button id="captureBtn">Сделать снимок</button>
-          <button id="captureConvertBtn" class="btn-secondary">Снимок и конвертация</button>
-          <button class="btn-ghost" type="button" onclick="document.getElementById('cameraStream').src='/camera-feed?ts='+Date.now()">Обновить поток</button>
-        </div>
-        <div id="captureMsg" class="msg" style="display:none;"></div>
-      </div>
+            <div class="preview" style="margin-top:8px;">
+                <img id="cameraStream" src="/camera-feed" alt="camera preview"
+                     onerror="this.onerror=null; this.src=''; this.alt='Нет доступа к камере или Picamera2/OpenCV не установлены.'; this.style.background='transparent'; this.style.opacity='0.7';">
+            </div>
+            <div class="row" style="margin-top:12px;">
+                <button id="captureBtn">Сделать снимок</button>
+                <button id="captureConvertBtn" class="btn-secondary">Снимок и конвертация</button>
+                <button class="btn-ghost" type="button"
+                        onclick="document.getElementById('cameraStream').src='/camera-feed?ts='+Date.now()">Обновить
+                    поток
+                </button>
+            </div>
+            <div id="captureMsg" class="msg" style="display:none;"></div>
+            <div class="row" style="margin-top:12px; align-items:flex-start;">
+                <div style="flex:1;">
+                    <div class="muted" id="autoStatusText">Авто: неизвестно</div>
+                    <button class="btn-ghost" type="button" id="autoStatusRefreshBtn">Обновить статус</button>
+                </div>
+                <div style="width:200px;">
+                    <div class="preview" style="aspect-ratio:4/3;">
+                        <img id="lastAutoImg" alt="Последний автоснимок"
+                             onerror="this.onerror=null; this.src=''; this.alt='Нет изображения'; this.style.opacity='0.6';">
+                    </div>
+                </div>
+            </div>
 
-      <!-- Список изображений -->
-      <div class="card">
-        <header>
-          <div class="h">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Содержимое папки <code>images/</code>
-          </div>
-          <span class="badge">Список файлов</span>
-        </header>
+        </div>
 
-        <div id="imagesList" class="images">
-          {% for image in images %}
-            <div>{{ image }}</div>
-          {% endfor %}
+        <!-- Список изображений -->
+        <div class="card">
+            <header>
+                <div class="h">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="2"
+                              stroke-linecap="round"/>
+                    </svg>
+                    Содержимое папки <code>images/</code>
+                </div>
+                <span class="badge">Список файлов</span>
+            </header>
+
+            <div id="imagesList" class="images">
+                {% for image in images %}
+                    <div>{{ image }}</div>
+                {% endfor %}
+            </div>
+            <div class="row" style="margin-top:12px;">
+                <button id="refreshBtn">Обновить список</button>
+                <span class="muted">Подсказка: нажмите <span class="kbd">Ctrl</span> + <span class="kbd">R</span> для обновления страницы.</span>
+            </div>
         </div>
-        <div class="row" style="margin-top:12px;">
-          <button id="refreshBtn">Обновить список</button>
-          <span class="muted">Подсказка: нажмите <span class="kbd">Ctrl</span> + <span class="kbd">R</span> для обновления страницы.</span>
-        </div>
-      </div>
 
     </div>
-  </div>
+    <!-- Параметры конвертации -->
+    <div class="card">
+        <header>
+            <div class="h">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 12h16M4 6h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Параметры конвертации
+            </div>
+            <span class="badge">CSV config</span>
+        </header>
 
-  <script>
-    const sel = (q)=>document.querySelector(q);
+        <div class="row">
+            <div style="flex:1; min-width:200px;">
+                <label>Parallax, %</label>
+                <input id="cfgParallax" class="field" type="number" step="0.1" min="0" max="100" placeholder="0.5">
+            </div>
+            <div style="flex:1; min-width:200px;">
+                <label>Layers</label>
+                <input id="cfgLayers" class="field" type="number" min="1" max="255" placeholder="10">
+            </div>
+            <div style="flex:1; min-width:200px;">
+                <label>Zero-parallax layer</label>
+                <input id="cfgZPL" class="field" type="number" min="1" max="255" placeholder="5">
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+            <div style="flex:1; min-width:200px;">
+                <label>Вывод</label>
+                <select id="cfgOutMode" class="field">
+                    <option value="both">Оба (left/right и pair)</option>
+                    <option value="pair">Только pair.jpg</option>
+                    <option value="split">Только left/right</option>
+                </select>
+            </div>
+            <div style="flex:1; min-width:200px;">
+                <label>Ресайз</label>
+                <select id="cfgResizeMode" class="field">
+                    <option value="none">Не менять</option>
+                    <option value="fit">Вписать (сохр. пропорции)</option>
+                    <option value="exact">Точное (может исказить)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+            <div style="flex:1; min-width:200px;">
+                <label>Ширина (px)</label>
+                <input id="cfgW" class="field" type="number" min="0" max="10000" placeholder="0">
+            </div>
+            <div style="flex:1; min-width:200px;">
+                <label>Высота (px)</label>
+                <input id="cfgH" class="field" type="number" min="0" max="10000" placeholder="0">
+            </div>
+            <div style="flex:1; min-width:200px;">
+                <label>JPEG качество</label>
+                <input id="cfgJpegQ" class="field" type="number" min="1" max="100" placeholder="95">
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+            <button id="saveCfgBtn">Сохранить</button>
+            <button id="reloadCfgBtn" class="btn-ghost">Обновить</button>
+            <div id="cfgMsg" class="msg" style="display:none;"></div>
+        </div>
+        <div class="row" style="margin-top:10px; align-items:center;">
+            <label style="display:flex; align-items:center; gap:8px; margin:0;">
+                <input id="cfgAutoSnap" type="checkbox" style="transform:scale(1.2);"/>
+                Автоснимок (бэк)
+            </label>
+            <input id="cfgAutoSnapSec" class="field" type="number" min="1" max="3600" placeholder="5"
+                   style="width:90px;"/>
+            <span class="muted">сек.</span>
+            <label class="muted" style="display:flex; align-items:center; gap:6px;">
+                <input id="cfgAutoSnapConv" type="checkbox" style="transform:scale(1.2);"/>
+                Конвертировать
+            </label>
+            <div class="row" style="gap:6px; align-items:center;">
+                <span class="muted">Хранить</span>
+                <input id="cfgAutoSnapMax" class="field" type="number" min="1" max="10000" value="50"
+                       style="width:90px;"/>
+                <span class="muted">файлов</span>
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+
+<script>
+    const sel = (q) => document.querySelector(q);
     const elImageSelect = sel('#imageSelect');
     const elImageHidden = sel('#imageHidden');
     const formConvertExisting = sel('#convertExisting');
 
     function syncHidden() {
-      elImageHidden.value = elImageSelect.value;
+        elImageHidden.value = elImageSelect.value;
     }
+
     syncHidden();
     elImageSelect.addEventListener('change', syncHidden);
 
@@ -370,98 +648,302 @@
     const uploadBtn = sel('#uploadBtn');
     const uploadAndConvertBtn = sel('#uploadAndConvertBtn');
 
-    async function uploadFile(doConvert=false) {
-      uploadMsg.style.display = 'none';
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) {
-        showMsg(uploadMsg, 'error', 'Файл не выбран.');
-        return;
-      }
-      const fd = new FormData();
-      fd.append('file', file);
-
-      disableBtns(true);
-      try {
-        const upRes = await fetch('/upload', { method:'POST', body: fd });
-        const upJson = await upRes.json();
-        if (!upJson.ok) throw new Error(upJson.message || 'Ошибка загрузки');
-
-        await refreshImages(upJson.filename);
-        if (doConvert) {
-          const convRes = await fetch('/convert', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ filename: upJson.filename })
-          });
-          const convJson = await convRes.json();
-          if (!convJson.ok) throw new Error(convJson.message || 'Ошибка конвертации');
-          showMsg(uploadMsg, 'success', `${upJson.message} — ${convJson.message}`);
-        } else {
-          showMsg(uploadMsg, 'success', upJson.message);
+    async function uploadFile(doConvert = false) {
+        uploadMsg.style.display = 'none';
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+            showMsg(uploadMsg, 'error', 'Файл не выбран.');
+            return;
         }
-      } catch (e) {
-        showMsg(uploadMsg, 'error', e.message);
-      } finally {
-        disableBtns(false);
-      }
+        const fd = new FormData();
+        fd.append('file', file);
+
+        disableBtns(true);
+        try {
+            const upRes = await fetch('/upload', {method: 'POST', body: fd});
+            const upJson = await upRes.json();
+            if (!upJson.ok) throw new Error(upJson.message || 'Ошибка загрузки');
+
+            await refreshImages(upJson.filename);
+            if (doConvert) {
+                const convRes = await fetch('/convert', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({filename: upJson.filename})
+                });
+                const convJson = await convRes.json();
+                if (!convJson.ok) throw new Error(convJson.message || 'Ошибка конвертации');
+                showMsg(uploadMsg, 'success', `${upJson.message} — ${convJson.message}`);
+            } else {
+                showMsg(uploadMsg, 'success', upJson.message);
+            }
+        } catch (e) {
+            showMsg(uploadMsg, 'error', e.message);
+        } finally {
+            disableBtns(false);
+        }
     }
 
-    uploadBtn.addEventListener('click', ()=>uploadFile(false));
-    uploadAndConvertBtn.addEventListener('click', ()=>uploadFile(true));
+    uploadBtn.addEventListener('click', () => uploadFile(false));
+    uploadAndConvertBtn.addEventListener('click', () => uploadFile(true));
 
     function disableBtns(disabled) {
-      uploadBtn.disabled = disabled;
-      uploadAndConvertBtn.disabled = disabled;
-      captureBtn.disabled = disabled;
-      captureConvertBtn.disabled = disabled;
-      refreshBtn.disabled = disabled;
+        uploadBtn.disabled = disabled;
+        uploadAndConvertBtn.disabled = disabled;
+        captureBtn.disabled = disabled;
+        captureConvertBtn.disabled = disabled;
+        refreshBtn.disabled = disabled;
     }
 
     function showMsg(node, type, text) {
-      node.className = 'msg ' + (type === 'success' ? 'success' : 'error');
-      node.textContent = text;
-      node.style.display = 'block';
+        node.className = 'msg ' + (type === 'success' ? 'success' : 'error');
+        node.textContent = text;
+        node.style.display = 'block';
     }
 
     const captureBtn = sel('#captureBtn');
     const captureConvertBtn = sel('#captureConvertBtn');
     const captureMsg = sel('#captureMsg');
 
-    async function capture(doConvert=false) {
-      captureMsg.style.display = 'none';
-      disableBtns(true);
-      try {
-        const res = await fetch('/capture' + (doConvert ? '?convert=true' : ''), { method: 'POST' });
-        const j = await res.json();
-        if (!j.ok) throw new Error(j.message || 'Ошибка захвата');
-        await refreshImages(j.filename);
-        showMsg(captureMsg, 'success', j.message);
-      } catch (e) {
-        showMsg(captureMsg, 'error', e.message);
-      } finally {
-        disableBtns(false);
-      }
+    async function capture(doConvert = false) {
+        captureMsg.style.display = 'none';
+        disableBtns(true);
+        try {
+            const res = await fetch('/capture' + (doConvert ? '?convert=true' : ''), {method: 'POST'});
+            const j = await res.json();
+            if (!j.ok) throw new Error(j.message || 'Ошибка захвата');
+            await refreshImages(j.filename);
+            showMsg(captureMsg, 'success', j.message);
+        } catch (e) {
+            showMsg(captureMsg, 'error', e.message);
+        } finally {
+            disableBtns(false);
+        }
     }
 
-    captureBtn.addEventListener('click', ()=>capture(false));
-    captureConvertBtn.addEventListener('click', ()=>capture(true));
+    captureBtn.addEventListener('click', () => capture(false));
+    captureConvertBtn.addEventListener('click', () => capture(true));
 
     const imagesList = sel('#imagesList');
     const refreshBtn = sel('#refreshBtn');
 
-    async function refreshImages(selectFilename=null) {
-      const res = await fetch('/images');
-      const j = await res.json();
-      const items = j.images || [];
-      imagesList.innerHTML = items.map(n=>`<div>${n}</div>`).join('');
-      elImageSelect.innerHTML = items.map(n=>`<option value="${n}">${n}</option>`).join('');
-      if (selectFilename && items.includes(selectFilename)) {
-        elImageSelect.value = selectFilename;
-      }
-      syncHidden();
+    async function refreshImages(selectFilename = null) {
+        const res = await fetch('/images');
+        const j = await res.json();
+        const items = j.images || [];
+        imagesList.innerHTML = items.map(n => `<div>${n}</div>`).join('');
+        elImageSelect.innerHTML = items.map(n => `<option value="${n}">${n}</option>`).join('');
+        if (selectFilename && items.includes(selectFilename)) {
+            elImageSelect.value = selectFilename;
+        }
+        syncHidden();
     }
 
-    refreshBtn.addEventListener('click', ()=>refreshImages());
-  </script>
+    refreshBtn.addEventListener('click', () => refreshImages());
+</script>
+<script>
+    // --- Конфиг ---
+    const cfgParallax = sel('#cfgParallax');
+    const cfgLayers = sel('#cfgLayers');
+    const cfgZPL = sel('#cfgZPL');
+    const cfgOutMode = sel('#cfgOutMode');
+    const cfgResizeMode = sel('#cfgResizeMode');
+    const cfgW = sel('#cfgW');
+    const cfgH = sel('#cfgH');
+    const cfgJpegQ = sel('#cfgJpegQ');
+    const saveCfgBtn = sel('#saveCfgBtn');
+    const reloadCfgBtn = sel('#reloadCfgBtn');
+    const cfgMsg = sel('#cfgMsg');
+    const cfgAutoSnap = sel('#cfgAutoSnap');
+    const cfgAutoSnapSec = sel('#cfgAutoSnapSec')
+    const cfgAutoSnapConv = sel('#cfgAutoSnapConv')
+    const cfgAutoSnapMax = sel('#cfgAutoSnapMax');
+    const autoStatusText = sel('#autoStatusText');
+    const autoStatusRefreshBtn = sel('#autoStatusRefreshBtn');
+    const lastAutoImg = sel('#lastAutoImg');
+
+    async function loadConfig() {
+        try {
+            const r = await fetch('/config.json');
+            const j = await r.json();
+            cfgParallax.value = j.parallax_perc ?? '';
+            cfgLayers.value = j.layers_count ?? '';
+            cfgZPL.value = j.zero_parallax_layer_num ?? '';
+            cfgOutMode.value = j.output_mode ?? 'both';
+            cfgResizeMode.value = j.resize_mode ?? 'none';
+            cfgW.value = j.target_width ?? '';
+            cfgH.value = j.target_height ?? '';
+            cfgJpegQ.value = j.jpeg_quality ?? '';
+            cfgAutoSnap.checked = j.auto_snap_enabled === 'true';
+            cfgAutoSnapSec.value = j.auto_snap_interval ?? '5';
+            cfgAutoSnapConv.checked = j.auto_snap_convert === 'true';
+            cfgAutoSnap.checked = (j.auto_snap_enabled === 'true');
+            cfgAutoSnapSec.value = j.auto_snap_interval ?? '5';
+            cfgAutoSnapConv.checked = (j.auto_snap_convert === 'true');
+            cfgAutoSnapMax.value = j.auto_snap_max_files ?? '50';
+        } catch (e) {
+            showMsg(cfgMsg, 'error', 'Не удалось загрузить конфиг.');
+        }
+    }
+
+    async function saveConfig() {
+        cfgMsg.style.display = 'none';
+        const payload = {
+            parallax_perc: cfgParallax.value,
+            layers_count: cfgLayers.value,
+            zero_parallax_layer_num: cfgZPL.value,
+            output_mode: cfgOutMode.value,
+            resize_mode: cfgResizeMode.value,
+            target_width: cfgW.value,
+            target_height: cfgH.value,
+            jpeg_quality: cfgJpegQ.value,
+            auto_snap_enabled: cfgAutoSnap.checked ? "true" : "false",
+            auto_snap_interval: cfgAutoSnapSec.value,
+            auto_snap_convert: cfgAutoSnapConv.checked ? "true" : "false",
+            auto_snap_max_files: cfgAutoSnapMax.value
+        };
+        try {
+            const r = await fetch('/save-config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const j = await r.json();
+            if (!j.ok) throw new Error(j.message || 'Ошибка сохранения');
+            showMsg(cfgMsg, 'success', j.message);
+        } catch (e) {
+            showMsg(cfgMsg, 'error', e.message);
+        }
+    }
+
+    saveCfgBtn?.addEventListener('click', saveConfig);
+    reloadCfgBtn?.addEventListener('click', loadConfig);
+    loadConfig();
+
+    async function loadAutoSnapStatus() {
+        try {
+            const r = await fetch('/auto-snap-status');
+            const j = await r.json();
+            const en = j.enabled ? 'Вкл' : 'Выкл';
+            const run = j.running ? 'работает' : 'неактивен';
+            const itv = j.interval;
+            const msg = j.last_error ? `Ошибка: ${j.last_error}` :
+                (j.last_time ? `Ок · ${new Date(j.last_time).toLocaleTimeString()}` : 'Нет данных');
+
+            autoStatusText.textContent = `Автоснимок: ${en} (${run}), интервал ${itv} с · ${msg}`;
+
+            if (j.last_filename) {
+                lastAutoImg.src = `/image-file?name=${encodeURIComponent(j.last_filename)}&ts=${Date.now()}`;
+            }
+        } catch (e) {
+            autoStatusText.textContent = 'Автоснимок: ошибка статуса';
+        }
+    }
+
+    autoStatusRefreshBtn?.addEventListener('click', loadAutoSnapStatus);
+
+    setInterval(loadAutoSnapStatus, 5000);
+    loadAutoSnapStatus();
+
+</script>
+<script>
+    const autoSnapToggle = sel('#autoSnapToggle');
+    const autoSnapSec = sel('#autoSnapSec');
+    const autoSnapStatus = sel('#autoSnapStatus');
+
+    let autoSnapTimer = null;
+    let autoSnapBusy = false;
+
+    (function initAutoSnap() {
+        try {
+            const savedOn = localStorage.getItem('autoSnap.enabled');
+            const savedSec = localStorage.getItem('autoSnap.interval');
+            if (savedSec) autoSnapSec.value = +savedSec || 5;
+            if (savedOn === 'true') {
+                autoSnapToggle.checked = true;
+                startAutoSnap();
+            }
+        } catch (_) {
+        }
+    })();
+
+    function setAutoSnapStatus(text) {
+        autoSnapStatus.textContent = text;
+    }
+
+    function startAutoSnap() {
+        const sec = clampInterval(+autoSnapSec.value);
+        autoSnapSec.value = sec; // нормализуем
+        stopAutoSnap(); // на всякий случай
+        setAutoSnapStatus(`Включено · каждые ${sec} с`);
+        localStorage.setItem('autoSnap.enabled', 'true');
+        localStorage.setItem('autoSnap.interval', String(sec));
+
+        autoSnapTimer = setInterval(async () => {
+            if (autoSnapBusy) return; // не пускать параллельные
+            autoSnapBusy = true;
+            try {
+                // делаем снимок и сразу конвертацию
+                const res = await fetch('/capture?convert=true', {method: 'POST'});
+                const j = await res.json().catch(() => ({}));
+                if (!j.ok) {
+                    console.warn('Автоснимок: ошибка', j.message);
+                    setAutoSnapStatus(`Ошибка: ${j.message || 'capture'}`);
+                } else {
+                    setAutoSnapStatus(`Ок · ${new Date().toLocaleTimeString()}`);
+                    // обновим список и выберем последний файл
+                    if (j.filename) await refreshImages(j.filename);
+                }
+            } catch (e) {
+                console.warn('Автоснимок: исключение', e);
+                setAutoSnapStatus(`Ошибка сети`);
+            } finally {
+                autoSnapBusy = false;
+            }
+        }, sec * 1000);
+    }
+
+    function stopAutoSnap() {
+        if (autoSnapTimer) {
+            clearInterval(autoSnapTimer);
+            autoSnapTimer = null;
+        }
+        localStorage.setItem('autoSnap.enabled', 'false');
+        setAutoSnapStatus('Выключено');
+    }
+
+    function clampInterval(v) {
+        if (!Number.isFinite(v) || v < 1) return 1;
+        if (v > 3600) return 3600;
+        return Math.floor(v);
+    }
+
+    // события
+    autoSnapToggle?.addEventListener('change', () => {
+        if (autoSnapToggle.checked) startAutoSnap();
+        else stopAutoSnap();
+    });
+
+    autoSnapSec?.addEventListener('change', () => {
+        const wasOn = autoSnapToggle.checked;
+        const sec = clampInterval(+autoSnapSec.value);
+        autoSnapSec.value = sec;
+        if (wasOn) {
+            // перезапустить с новым интервалом
+            startAutoSnap();
+        }
+    });
+
+    // (опционально) пауза, если вкладка не активна — можно экономить ресурсы
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && autoSnapToggle.checked) {
+            stopAutoSnap();
+            setAutoSnapStatus('Пауза (вкладка неактивна)');
+        } else if (!document.hidden && autoSnapToggle.checked) {
+            startAutoSnap();
+        }
+    });
+</script>
+
 </body>
 </html>
