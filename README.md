@@ -61,3 +61,20 @@ http://<адрес хоста>:8000
   zero_parallax_layer_num  слой нулевого параллакса (int, по умолчанию 5)
   output_mode              0=both (по умолчанию), 1=pair только, 2=split только
 ```
+
+# Параметризация конфигов преобразования изображения (config/config.csv)
+
+```csv
+key,value
+parallax_perc,0.5
+layers_count,10
+zero_parallax_layer_num,5
+output_mode,both    # both | pair | split
+resize_mode,none    # none | fit | exact
+target_width,0
+target_height,0
+jpeg_quality,95     # для ресайза/снимков (Pillow/OpenCV)
+auto_snap_enabled,true  # Автоснимок - включить/выключить
+auto_snap_interval,5    # Периодичность автоснимка в секундах
+auto_snap_convert,true  # Автоматическая конвертация в стереопару после автоснимка - включить/выключить
+```

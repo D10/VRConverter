@@ -3,3 +3,4 @@
 venv
 stereo
 converted_images/*
+config/config.csv
