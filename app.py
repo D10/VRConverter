@@ -320,7 +320,21 @@ def serve_latest_image():
 
 @app.route('/get-image')
 def get_image():
-    return send_file(CONVERTED_IMAGES_FOLDER / IMAGE_NAME, mimetype='image/jpeg')
+    # приоритет — latest.jpg
+    latest = CONVERTED_IMAGES_FOLDER / "latest.jpg"
+    # совместимость: если latest ещё нет, пробуем pair.jpg
+    fallback = CONVERTED_IMAGES_FOLDER / "pair.jpg"
+
+    target = latest if latest.exists() else (fallback if fallback.exists() else None)
+    if not target:
+        abort(404, description="Нет сконвертированных изображений")
+
+    resp = make_response(send_file(target, mimetype='image/jpeg'))
+    # Жёстко отключаем кэш
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
 
 
 @app.route('/admin', methods=['GET', 'POST'])
